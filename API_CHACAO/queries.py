@@ -43,8 +43,8 @@ def get_tweets_of_user(twitter, name, cant=300):
       return ret
     for tweet in results:
       ret.append(dict(\
-                 [('id'       ,tweet['id_str']),\
-                  ('usuario'   ,name),\
+                 [('id'       , tweet['id_str']),\
+                  ('usuario'  , name),\
                   ('contenido', tweet['text']), \
                   ('fecha'    , tweet['created_at'])]))
     return ret
@@ -70,7 +70,31 @@ def get_following(twitter, name, cant=300):
       return ()
     return results['ids']
 
-
+def get_users_tweets_location(twitter,msj,latitud,longitud,radio,cant=10):
+  usuarios = list()
+  x=cant
+  while(1):
+    if(x<0):
+      return usuarios
+    try:
+      results = twitter.search(q       = msj,\
+                               geocode = latitud+","+longitud+","+radio,\
+                               count   = min(cant,100))
+    except:
+      print("Problema al buscar por geoloc")
+      return usuarios
+    x-=100
+    cant = 0
+    #print(len(results['statuses']))
+    for tweet in results['statuses']:
+      usuarios.append(dict([('id'       ,tweet['user']['id_str']),\
+                            ('ususario' ,tweet['user']['screen_name'])])) 
+      cant+=1
+    if(cant==0):
+      return usuarios
+    
+     
+ 
 
 def f(twitter):
  
@@ -87,6 +111,9 @@ def f(twitter):
         print("\n==============================================\n")
 # Read the name of the file for authentication (which account)
 
+
+
+
 print("Enter the name of the authentication file >> ")
 dataUser = input()
 
@@ -102,8 +129,10 @@ OAUTH_TOKEN_SECRET  = authFile[3]
 twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 twitter.verify_credentials()
 
-print(get_following(twitter,"wilmerBandres",10))
-print(get_followers(twitter,"wilmerBandres",10))
-print(get_tweets_of_user(twitter,"ludafer",10))
-print(get_retweeters(twitter,"wilmerBandres"))
+#print(get_following(twitter,"wilmerBandres",10))
+#print(get_followers(twitter,"wilmerBandres",10))
+#print(get_tweets_of_user(twitter,"ludafer",10))
+#print(get_retweeters(twitter,"wilmerBandres"))
+#print(twitter.search(q="#RetoChacao",count=100))
+print(get_users_tweets_location(twitter,"hi","40.7127", "74.0059","10mi"))
 #f(twitter)
