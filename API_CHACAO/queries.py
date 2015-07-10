@@ -89,6 +89,7 @@ def get_users_tweets_location(twitter,msj,latitud,longitud,radio,cant=10):
     for tweet in results['statuses']:
       usuarios.append(dict([('id'       ,tweet['user']['id_str']),\
                             ('ususario' ,tweet['user']['screen_name'])])) 
+      print(tweet['text'])
       cant+=1
     if(cant==0):
       return usuarios
@@ -107,7 +108,6 @@ def f(twitter):
         print("Usuario:\n")
         print(tweet['user']['screen_name'])
         print("\nContenido\n")
-        print(tweet['text'])
         print("\n==============================================\n")
 # Read the name of the file for authentication (which account)
 
@@ -132,7 +132,7 @@ twitter.verify_credentials()
 #print(get_following(twitter,"wilmerBandres",10))
 #print(get_followers(twitter,"wilmerBandres",10))
 #print(get_tweets_of_user(twitter,"ludafer",10))
-#print(get_retweeters(twitter,"wilmerBandres"))
+print(get_retweeters(twitter,"mas bella"))
 #print(twitter.search(q="#RetoChacao",count=100))
-print(get_users_tweets_location(twitter,"hi","40.7127", "74.0059","10mi"))
+#print(get_users_tweets_location(twitter,"mas bella","10.40833","-66.88333","1km"))
 #f(twitter)
