@@ -47,10 +47,19 @@ def get_tweets_of_user(twitter, name, cant=300):
       return ret
     for tweet in results:
       ret.append(dict(\
-                 [('id'       , tweet['id_str']),\
-                  ('usuario'  , name),\
-                  ('contenido', tweet['text']), \
-                  ('fecha'    , tweet['created_at'])]))
+                 [
+                  ('tweet_id'      , tweet['id_str']),\
+                  ('usuario'       , tweet['user']['screen_name']),\
+                  ('user_id'       , tweet['user']['id']),
+                  ('contenido'     , tweet['text']), \
+                  ('retweets'      , tweet['retweet_count']),\
+                  ('fav'           , tweet['favorite_count']),\
+                  ('responde_a_id' , tweet['in_reply_to_user_id_str']),\
+                  ('responde_a'    , tweet['in_reply_to_screen_name']),\
+                  ('image_url'     , tweet['user']['profile_image_url']),\
+                  ('fecha'         , tweet['created_at']),\
+                  ('responde_msj'  , tweet['in_reply_to_status_id_str'])
+                ]))
     return ret
 
 
@@ -97,11 +106,16 @@ def get_users_tweets_location(twitter,msj,latitud,longitud,radio,cant=10):
       cant+=1
     if(cant==0):
       return usuarios
+
+
     
-#Funcion que obtiene  
-def get_tweets(twitter,msj,cant=100):
+#Funcion que obtiene los tweets que cumplen con un mensaje
+#busca de 100 en 100 (debigo al API de twitter)
+#y busca hasta cant tweets
+#ademas trunca la busqueda a 100000 tweets
+def get_tweets(twitter,msj,cant=100,since=-1):
+    cant = min(cant,100000)
     ret = list()
-    since = -1
     while(cant>0):
       try:
         if(since<0):
@@ -109,7 +123,7 @@ def get_tweets(twitter,msj,cant=100):
         else:
           results = twitter.search(q=msj, count=min(100,cant), max_id=since)
       except:
-        print("Error al buscar tweets de un usuario")
+        print("Error al buscar tweets por patron")
         return ret
       cant-=100
       tmp = 0
@@ -153,7 +167,7 @@ def f(twitter):
 #Funcion que dado un archivo co nlas claves de la APP,
 # y OAUTH se conecta con twitter para luego
 # empezar a hacer queries
-def conectar(dataUser="wilmer.txt"):
+def conectar(dataUser="andres.txt"):
   authFile = open(dataUser).read().splitlines()
   # Setting the variables for verificate credentials
   APP_KEY             = authFile[0]
@@ -171,7 +185,7 @@ def conectar(dataUser="wilmer.txt"):
   
 #print(get_following(twitter,"wilmerBandres",10))
 #print(get_followers(twitter,"wilmerBandres",10))
-#print(get_tweets_of_user(twitter,"ludafer",10))
+#print(get_tweets_of_user(conectar(),"wilmerBandres",1))
 #print(len(get_retweeters(twitter,"mas bella")))
 #print(get_tweets(conectar(),"@danielarturomt Prueba",3))
 #print(get_users_tweets_location(twitter,"mas bella","10.40833","-66.88333","1km"))
