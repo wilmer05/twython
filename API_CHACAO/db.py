@@ -14,8 +14,9 @@ def query_recientes_tweets_id(db,patron,cant=100):
 #los agrega a la db
 def add_tweets(db,tweets):
   for tweet in tweets:
+    #print(tweet['es_rt'])
     if(db.tweets.find_one({'tweet_id':tweet['tweet_id']})==None):
-      db.tweets.insert([{
+        agregar = [{
               'tweet_id'        : tweet['tweet_id'],
               'usuario_twitteo' : tweet['usuario'],
               'user_id'         : tweet['user_id'],
@@ -26,8 +27,13 @@ def add_tweets(db,tweets):
               'responda_a'      : tweet['responde_a'],
               'image_url'       : tweet['image_url'],
               'fecha'           : tweet['fecha'],
-              'responde_msj'    : tweet['responde_msj']
-                     }])
+              'responde_msj'    : tweet['responde_msj'],
+              'es_rt'           : tweet['es_rt']       
+                  }]
+        
+        if('rt_status' in tweet):
+          agregar[0]['rt_status']=tweet['rt_status']
+        db.tweets.insert(agregar)
 
 #Funcion que busca los tweets mas recientes de las cuentas
 #que estan en el arreglo de seguir
@@ -51,7 +57,7 @@ def stalk_infinito(db):
       except:
         ultimo_id = 0
       ultimo_id=str(int(ultimo_id)-1)
-      agregar_t = queries.get_tweets(twitter,patron,10,ultimo_id)
+      agregar_t = queries.get_tweets(twitter,patron,30,ultimo_id)
       add_tweets(db,agregar_t)
 
 

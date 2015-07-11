@@ -46,8 +46,7 @@ def get_tweets_of_user(twitter, name, cant=300):
       print("Error al buscar tweets de un usuario")
       return ret
     for tweet in results:
-      ret.append(dict(\
-                 [
+      agregar = [
                   ('tweet_id'      , tweet['id_str']),\
                   ('usuario'       , tweet['user']['screen_name']),\
                   ('user_id'       , tweet['user']['id']),
@@ -58,8 +57,13 @@ def get_tweets_of_user(twitter, name, cant=300):
                   ('responde_a'    , tweet['in_reply_to_screen_name']),\
                   ('image_url'     , tweet['user']['profile_image_url']),\
                   ('fecha'         , tweet['created_at']),\
-                  ('responde_msj'  , tweet['in_reply_to_status_id_str'])
-                ]))
+                  ('responde_msj'  , tweet['in_reply_to_status_id_str']),\
+                  ('es_rt'         , tweet['retweeted'])
+                ]
+      if('retweeted_status' in tweet):
+        agregar.append(('rt_status',tweet['retweeted_status']))
+      ret.append(dict(agregar))
+
     return ret
 
 
@@ -116,19 +120,20 @@ def get_users_tweets_location(twitter,msj,latitud,longitud,radio,cant=10):
 def get_tweets(twitter,msj,cant=100,since=-1):
     cant = min(cant,100000)
     ret = list()
+    #print(twitter.search(q=msj,count=100))
     while(cant>0):
       try:
-        if(since<0):
+        if(int(since)<0):
           results = twitter.search(q=msj, count=min(100,cant))
         else:
           results = twitter.search(q=msj, count=min(100,cant), max_id=since)
-      except:
-        print("Error al buscar tweets por patron")
+      except Exception as e:
+        print("Error al buscar tweets por patron "+str(e))
         return ret
       cant-=100
       tmp = 0
       for tweet in results['statuses']:
-        ret.append(dict(\
+        agregar = list(
                  [\
                   ('tweet_id'      , tweet['id_str']),\
                   ('usuario'       , tweet['user']['screen_name']),\
@@ -140,8 +145,14 @@ def get_tweets(twitter,msj,cant=100,since=-1):
                   ('responde_a'    , tweet['in_reply_to_screen_name']),\
                   ('image_url'     , tweet['user']['profile_image_url']),\
                   ('fecha'         , tweet['created_at']),\
-                  ('responde_msj'  , tweet['in_reply_to_status_id_str'])
-                 ]))
+                  ('responde_msj'  , tweet['in_reply_to_status_id_str']),\
+                  ('es_rt'         , tweet['retweeted'])
+                 ])
+
+        if('retweeted_status' in tweet):
+          agregar.append(('rt_status',tweet['retweeted_status']))
+ 
+        ret.append(dict(agregar))
         tmp+=1
       if(tmp==0):
         break
@@ -187,7 +198,8 @@ def conectar(dataUser="andres.txt"):
 #print(get_followers(twitter,"wilmerBandres",10))
 #print(get_tweets_of_user(conectar(),"wilmerBandres",1))
 #print(len(get_retweeters(twitter,"mas bella")))
-#print(get_tweets(conectar(),"@danielarturomt Prueba",3))
+#print(conectar().search(q="RT",count=1))
+#print(get_tweets(conectar(),"RT",1))
 #print(get_users_tweets_location(twitter,"mas bella","10.40833","-66.88333","1km"))
 #f(twitter)
 
