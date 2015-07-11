@@ -10,12 +10,16 @@ number = 0;
 #Funcion que dado un string y un id de algun tweet
 #Obtiene todos los usuarios que han twitteado o retweeteado
 #un mensaje msj
-def get_retweeters(twitter, msj, since=-1):
+def get_retweeters(twitter, msj, since=-1,cant=100):
   usuarios = set()
-  x =0
+  x = 0  
+  c = 0
   while(1):
     if(x>50):
       return list(usuarios)
+    if(c>=cant):
+      return list(usuarios)
+    c+=100
     x+=1
     try:
       results = twitter.search(q=msj,max_id=since,count=100)
@@ -94,8 +98,42 @@ def get_users_tweets_location(twitter,msj,latitud,longitud,radio,cant=10):
     if(cant==0):
       return usuarios
     
-     
- 
+#Funcion que obtiene  
+def get_tweets(twitter,msj,cant=100):
+    ret = list()
+    since = -1
+    while(cant>0):
+      try:
+        if(since<0):
+          results = twitter.search(q=msj, count=min(100,cant))
+        else:
+          results = twitter.search(q=msj, count=min(100,cant), max_id=since)
+      except:
+        print("Error al buscar tweets de un usuario")
+        return ret
+      cant-=100
+      tmp = 0
+      for tweet in results['statuses']:
+        ret.append(dict(\
+                 [\
+                  ('tweet_id'      , tweet['id_str']),\
+                  ('usuario'       , tweet['user']['screen_name']),\
+                  ('user_id'       , tweet['user']['id']),
+                  ('contenido'     , tweet['text']), \
+                  ('retweets'      , tweet['retweet_count']),\
+                  ('fav'           , tweet['favorite_count']),\
+                  ('responde_a_id' , tweet['in_reply_to_user_id_str']),\
+                  ('responde_a'    , tweet['in_reply_to_screen_name']),\
+                  ('image_url'     , tweet['user']['profile_image_url']),\
+                  ('fecha'         , tweet['created_at']),\
+                  ('responde_msj'  , tweet['in_reply_to_status_id_str'])
+                 ]))
+        tmp+=1
+      if(tmp==0):
+        break
+      since = results['statuses'][-1]['id']
+    return ret
+
 
 def f(twitter):
  
@@ -112,27 +150,30 @@ def f(twitter):
 # Read the name of the file for authentication (which account)
 
 
+#Funcion que dado un archivo co nlas claves de la APP,
+# y OAUTH se conecta con twitter para luego
+# empezar a hacer queries
+def conectar(dataUser="wilmer.txt"):
+  authFile = open(dataUser).read().splitlines()
+  # Setting the variables for verificate credentials
+  APP_KEY             = authFile[0]
+  APP_SECRET          = authFile[1]
+  OAUTH_TOKEN         = authFile[2]
+  OAUTH_TOKEN_SECRET  = authFile[3]
 
+  #Conectandose a twitter
+  twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
+  
+  #Verificando credenciales
+  twitter.verify_credentials()
 
-print("Enter the name of the authentication file >> ")
-dataUser = input()
-
-authFile = open(dataUser).read().splitlines()
-#tweets = open("tweets.txt").read().splitlines()
-
-# Setting the variables for verificate credentials
-APP_KEY             = authFile[0]
-APP_SECRET          = authFile[1]
-OAUTH_TOKEN         = authFile[2]
-OAUTH_TOKEN_SECRET  = authFile[3]
-
-twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-twitter.verify_credentials()
-
+  return twitter
+  
 #print(get_following(twitter,"wilmerBandres",10))
 #print(get_followers(twitter,"wilmerBandres",10))
 #print(get_tweets_of_user(twitter,"ludafer",10))
-print(get_retweeters(twitter,"mas bella"))
-#print(twitter.search(q="#RetoChacao",count=100))
+#print(len(get_retweeters(twitter,"mas bella")))
+#print(get_tweets(conectar(),"@danielarturomt Prueba",3))
 #print(get_users_tweets_location(twitter,"mas bella","10.40833","-66.88333","1km"))
 #f(twitter)
+
