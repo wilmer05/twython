@@ -112,6 +112,56 @@ def get_users_tweets_location(twitter,msj,latitud,longitud,radio,cant=10):
       return usuarios
 
 
+
+#Funcion que obtiene los tweets que cumplen con un mensaje
+#busca de 100 en 100 (debigo al API de twitter)
+#y busca hasta cant tweets
+#ademas trunca la busqueda a 100000 tweets 
+#y busca los tweets mas nuevos a diferencia de la siguiente
+#funcion
+def get_tweets_from_since(twitter,msj,cant=100,since=-1):
+    cant = min(cant,100000)
+    ret = list()
+    #print(twitter.search(q=msj,count=100))
+    while(cant>0):
+      try:
+        if(int(since)<0):
+          results = twitter.search(q=msj, count=min(100,cant))
+        else:
+          results = twitter.search(q=msj, count=min(100,cant), since_id=since)
+      except Exception as e:
+        print("Error al buscar tweets por patron "+str(e))
+        return ret
+      cant-=100
+      tmp = 0
+      for tweet in results['statuses']:
+        agregar = list(
+                 [\
+                  ('tweet_id'      , tweet['id_str']),\
+                  ('usuario'       , tweet['user']['screen_name']),\
+                  ('user_id'       , tweet['user']['id']),
+                  ('contenido'     , tweet['text']), \
+                  ('retweets'      , tweet['retweet_count']),\
+                  ('fav'           , tweet['favorite_count']),\
+                  ('responde_a_id' , tweet['in_reply_to_user_id_str']),\
+                  ('responde_a'    , tweet['in_reply_to_screen_name']),\
+                  ('image_url'     , tweet['user']['profile_image_url']),\
+                  ('fecha'         , tweet['created_at']),\
+                  ('responde_msj'  , tweet['in_reply_to_status_id_str']),\
+                  ('es_rt'         , tweet['retweeted'])
+                 ])
+
+        if('retweeted_status' in tweet):
+          agregar.append(('rt_status',tweet['retweeted_status']))
+ 
+        ret.append(dict(agregar))
+        tmp+=1
+      if(tmp==0):
+        break
+      since = results['statuses'][0]['id']
+    return ret
+
+
     
 #Funcion que obtiene los tweets que cumplen con un mensaje
 #busca de 100 en 100 (debigo al API de twitter)
