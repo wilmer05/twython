@@ -1,6 +1,6 @@
 import pymongo
 import queries
-from constantes_db import DB_HOST,DB_NAME,DB_PORT,seguir
+from constantes import DB_HOST,DB_NAME,DB_PORT,seguir,tweets_por_query
 from time import sleep
 
 
@@ -42,16 +42,34 @@ def add_tweets(db,tweets):
 #que estan en el arreglo de seguir
 def stalk_infinito(db):
   twitter = queries.conectar()
- 
+  ultimo_id=-1
+  ids = list()
+  for i in seguir:
+    ids.append("-1")
+  idx = 0
   while(1): 
     for patron in seguir:
       sleep(0.1)
-      try:
-        ultimo_id = db.tweets.find({'mensaje':{'$regex':patron}}).sort("tweet_id",pymongo.ASCENDING).limit(1)[0]['tweet_id']
-      except:
-        ultimo_id = -1
-      ultimo_id=str(int(ultimo_id))
-      agregar_t = queries.get_tweets(twitter,patron,50,ultimo_id)
+      #try:
+      #  ultimo_id = db.tweets.find({'mensaje':{'$regex':patron}}).sort("tweet_id",pymongo.ASCENDING).limit(1)[0]['tweet_id']
+      #except:
+      #  ultimo_id = -1
+      ultimo_id=ids[idx]
+      #print("ultimo="+ultimo_id)
+      (twitter,agregar_t) = queries.get_tweets(twitter,patron,tweets_por_query,ultimo_id)
+
+
+#      for i in agregar_t:
+#        print(i['tweet_id'])
+      print("agregar n elementos = "+str(len(agregar_t)))
+      
+      if(len(agregar_t)>0):
+        ids[idx]=str(int(agregar_t[len(agregar_t)-1]['tweet_id'])-1)
+        #print("Nuevo ultimo=" + ids[idx])
+
+      print("Voy = " + str(idx) + " id="+ids[idx] +"\n\n--------------------")
+      idx+=1
+      idx%=len(seguir)
       add_tweets(db,agregar_t)
 
 
@@ -69,7 +87,11 @@ def stalk_infinito_nuevos(db):
         ultimo_id = -1
       ultimo_id=str(int(ultimo_id))
       agregar_t = queries.get_tweets_from_since(twitter,patron,50,ultimo_id)
-      #print(len(agregar_t))
+      for i in agregar_t:
+        print(i['tweet_id'])
+      #while(1):
+      #  pass
+      print(len(agregar_t))
       add_tweets(db,agregar_t)
 
 
@@ -93,6 +115,6 @@ db = conectar_db()
 #for i in query_recientes_tweets_id(db,"Chacao",cant=10):
 #  print(i)
 #  print()
-#stalk_infinito_nuevos(db)
-print(db.tweets.find({}).sort("tweet_id",pymongo.DESCENDING).limit(1)[0]['mensaje'])
+stalk_infinito(db)
+#print(db.tweets.find({}).sort("tweet_id",pymongo.DESCENDING).limit(1)[0]['mensaje'])
 

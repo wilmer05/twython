@@ -14,3 +14,8 @@ seguir = [
               "@ramonmuchacho",\
               "@concejochacao"
          ]
+
+
+#Parametro que define cuantos tweets se tomaran
+#en get_tweets de db.py por query
+tweets_por_query = 25

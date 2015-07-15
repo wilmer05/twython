@@ -1,11 +1,30 @@
 from twython import Twython,TwythonError
-from time import localtime
+from time import localtime,sleep
 import sys
 
 # We'll use .tm_hour .tm_min
 timeTweet = localtime()
 number = 0;
 
+#Funcion que dado un archivo co nlas claves de la APP,
+# y OAUTH se conecta con twitter para luego
+# empezar a hacer queries
+def conectar(dataUser="andres.txt"):
+  authFile = open(dataUser).read().splitlines()
+  # Setting the variables for verificate credentials
+  APP_KEY             = authFile[0]
+  APP_SECRET          = authFile[1]
+  OAUTH_TOKEN         = authFile[2]
+  OAUTH_TOKEN_SECRET  = authFile[3]
+
+  #Conectandose a twitter
+  twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
+  
+  #Verificando credenciales
+  twitter.verify_credentials()
+
+  return twitter
+ 
 
 #Funcion que dado un string y un id de algun tweet
 #Obtiene todos los usuarios que han twitteado o retweeteado
@@ -178,8 +197,10 @@ def get_tweets(twitter,msj,cant=100,since=-1):
         else:
           results = twitter.search(q=msj, count=min(100,cant), max_id=since)
       except Exception as e:
-        print("Error al buscar tweets por patron "+str(e))
-        return ret
+        print("Error al buscar tweets por patron, "+str(e)+", sleep de 15 minutos")
+        sleep(16*60)
+        print("Conectando. . .")
+        return (conectar(),ret)
       cant-=100
       tmp = 0
       for tweet in results['statuses']:
@@ -207,7 +228,7 @@ def get_tweets(twitter,msj,cant=100,since=-1):
       if(tmp==0):
         break
       since = results['statuses'][-1]['id']
-    return ret
+    return (twitter,ret)
 
 
 def f(twitter):
@@ -225,25 +246,6 @@ def f(twitter):
 # Read the name of the file for authentication (which account)
 
 
-#Funcion que dado un archivo co nlas claves de la APP,
-# y OAUTH se conecta con twitter para luego
-# empezar a hacer queries
-def conectar(dataUser="andres.txt"):
-  authFile = open(dataUser).read().splitlines()
-  # Setting the variables for verificate credentials
-  APP_KEY             = authFile[0]
-  APP_SECRET          = authFile[1]
-  OAUTH_TOKEN         = authFile[2]
-  OAUTH_TOKEN_SECRET  = authFile[3]
-
-  #Conectandose a twitter
-  twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-  
-  #Verificando credenciales
-  twitter.verify_credentials()
-
-  return twitter
-  
 #print(get_following(twitter,"wilmerBandres",10))
 #print(get_followers(twitter,"wilmerBandres",10))
 #print(get_tweets_of_user(conectar(),"wilmerBandres",1))
